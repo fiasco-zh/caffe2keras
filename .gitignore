@@ -1,0 +1,5 @@
+*.h5
+*.png
+*.prototxt
+*.caffemodel
+*.ipynb
