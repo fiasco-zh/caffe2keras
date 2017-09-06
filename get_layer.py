@@ -14,7 +14,7 @@ def get_bottom(bottom_name, layers):
     return bottom
 
 def get_layer(layer_params, layers, verbose=False):
-    layer_type = layer_params['type']
+    layer_type = layer_params['type'].lower()
     layer_name = layer_params['name']  
     if layer_type == 'input':
         input_dim = np.array(layer_params['input_dim'][1:])
@@ -25,7 +25,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer 
     
 #Convolution layer
-    elif layer_type == 'Convolution':
+    elif layer_type == 'convolution':
         bottom_name = layer_params['bottom'][0]
         bottom = get_bottom(bottom_name, layers)
         kernel_size = layer_params['kernel_size']
@@ -41,7 +41,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer
     
 #Dense layer
-    elif layer_type == 'InnerProduct':
+    elif layer_type == 'innerproduct':
         bottom_name = layer_params['bottom'][0]
         bottom = get_bottom(bottom_name, layers)
         num_output = layer_params['num_output']
@@ -53,7 +53,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer
     
 #Batch_norm layer
-    elif layer_type == 'BatchNorm':
+    elif layer_type == 'batchnorm':
         bottom_name = layer_params['bottom'][0]
         bottom = get_bottom(bottom_name, layers)
 #         num_output = layer_params['num_output']
@@ -62,7 +62,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer
     
 #Pool layer
-    elif layer_type == 'Pooling':
+    elif layer_type == 'pooling':
         bottom_name = layer_params['bottom'][0]
         pool = layer_params['pool']
         stride = layer_params.get('stride', 2)
@@ -78,7 +78,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer
     
 #Softmax layer
-    elif layer_type == 'Softmax':
+    elif layer_type == 'softmax':
         bottom_name = layer_params['bottom'][0]
         bottom = get_bottom(bottom_name, layers)
         layer = Activation(softmax, name=layer_name)(bottom)
@@ -86,7 +86,7 @@ def get_layer(layer_params, layers, verbose=False):
         layers[bottom_name] = layer
         return layer
     
-    elif layer_type == 'ReLU':
+    elif layer_type == 'relu':
         bottom_name = layer_params['bottom'][0]
         bottom = get_bottom(bottom_name, layers)
         layer = Activation(relu, name=layer_name)(bottom)
@@ -95,7 +95,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer
 
 #Dropout layer
-    elif layer_type == 'Dropout':
+    elif layer_type == 'dropout':
         bottom_name = layer_params['bottom'][0]
         bottom = get_bottom(bottom_name, layers)
         dropout = 1 - float(layer_params['dropout_ratio'])
@@ -105,7 +105,7 @@ def get_layer(layer_params, layers, verbose=False):
         return layer
     
 #Add layer
-    elif layer_type == 'Eltwise':
+    elif layer_type == 'eltwise':
         bottom_name1 = layer_params['bottom'][0]
         bottom_name2 = layer_params['bottom'][1]
         bottom1 = get_bottom(bottom_name1, layers)
