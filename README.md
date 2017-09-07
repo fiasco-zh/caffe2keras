@@ -8,7 +8,7 @@ This code is for converting a caffe model to keras model and load caffe weights
 - Batch_Normaliztion
 - Softmax, ReLu
 - Dropout
-- Add
+- Add, Concatenate
 
 ## To Do
 - Add more layers
