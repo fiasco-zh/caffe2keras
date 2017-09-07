@@ -1,5 +1,5 @@
 # caffe2keras
-This code is used to convert a caffe model to keras model and load caffe weights   
+This code is for converting a caffe model to keras model and load caffe weights   
 
 ## Layer Supported
 - Dense
@@ -19,6 +19,7 @@ This code is used to convert a caffe model to keras model and load caffe weights
   - 'bn' + (something same)  
   - 'scale' + (something same)
   - example: bnbranch2\_conv1, scalebranch2\_conv1  
+- If you get problems in loading caffe model like me, you can just delete data, loss, accuracy type layers, it doesn't useful after converting to keras model.
 - If you don't want to load the weights in scale layers, ignore the first warning
 
 ## Instruction 
