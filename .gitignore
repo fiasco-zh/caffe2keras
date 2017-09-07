@@ -3,3 +3,5 @@
 *.prototxt
 *.caffemodel
 *.ipynb
+models
+.ipynb_checkpoints

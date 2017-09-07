@@ -19,13 +19,15 @@ from get_layer import get_layer
 
 def model_preprocessing(caffe_model):
     with open(caffe_model,'r') as f:
-        cmodel = (f.read())
+        cmodel = f.read()
     
     cmodel = cmodel.replace('\t', '')
     cmodel = cmodel.replace('\"', '')
     cmodel = cmodel.replace(' ', '')
-    
+    cmodel = cmodel.lower()
     params = cmodel.split('layer')
+    if 'input' not in params[0]:
+        params[0] = 'input:data'
     return params
 
 
@@ -41,6 +43,7 @@ def get_layer_param(params):
             value = param.split(':')[1]
             if key=='bottom':
                 layer_param['bottom'].append(value)
+
             elif not key in layer_param.keys():
                 layer_param[key] = int(value) if value.isdigit() else value
     return layer_param
@@ -50,7 +53,7 @@ def get_layer_param(params):
 
 
 def get_input_param(params):
-    input_param = {'input_dim':[], 'type':'input'}
+    input_param = {'input_dim':[], 'type':'input', 'name':'data'}
     params = params.splitlines()
     for param in params:    
         if ':' in param:
@@ -58,10 +61,6 @@ def get_input_param(params):
             value = param.split(':')[1]
             if key=='input_dim':
                 input_param[key].append(int(value))
-            elif key=='input':
-                input_param['name'] = value
-            elif key=='name':
-                 input_param['model_name'] = value   
     return input_param
 
 
@@ -83,13 +82,13 @@ def cmodel2k_param(cmodel):
 #     print(len(model_params))
     for i, params in enumerate(model_params):
 #         print(i)
-        if i==0:
+        if 'input' in params:
             k_params.append(get_input_param(params))
-        elif i==(len(model_params)-1):
+        elif 'softmax' in params:
 #             print(i)
             k_params.append(get_output_param(params))
 #             print(get_output_param(params))
-        else:
+        elif 'type' in params:
             k_params.append(get_layer_param(params))
     return k_params
 
@@ -108,15 +107,25 @@ def cmodel2kmodel(cmodel, verbose=False):
 
 def k_param2k_model(k_params, verbose=False):
     layers = {}
+    debug_layers = {'layer_connect': {}, 'skip_layer': []}
     inputs = None
     outputs= None
     print('building model')
     for layer_params in tqdm(k_params):       
-        layer = get_layer(layer_params, layers, verbose)
-        if layer_params['type'] == 'input':
-            inputs = layer
-        elif layer_params['name'] == 'output':
-            outputs = layer
+        layer = get_layer(layer_params, layers, verbose, debug_layers)
+        if layer!=None:
+            if layer_params['type'] == 'input':
+                inputs = layer
+            elif layer_params['name'] == 'output':
+                outputs = layer
+
+# Show layers which don't connect to a next layer
+    if verbose:
+        print('\nSome layer don\'t connect with a following layer, relu, batch_norm, activation\
+output and dropout layers are resonable\n', \
+            [key for key, value in debug_layers['layer_connect'].items() if value==0])
+        print('\n{} layer has been skipped:\n{}'.format(len(debug_layers['skip_layer']), debug_layers['skip_layer']))
+
     model = Model(inputs, outputs)
     print('Model builded')
     return model
@@ -131,6 +140,7 @@ def cweights2kweights(caffe_model, caffe_weights):
     net = caffe.Net(caffe_model,
                    caffe_weights,
                    caffe.TEST)
+    print('----------------------------getting weights------------------')
     weights = {}
     for item in net.params.items():    
         name, layer = item
@@ -209,8 +219,10 @@ def set_weights(model, weights, verbose=False):
 def get_keras_model_with_weights(cmodel, cweights=None, path=None, verbose=False):
 
     model = cmodel2kmodel(cmodel, verbose)
+    
     if cweights!=None:
         weights = cweights2kweights(cmodel, cweights)
+        print('----------------------------getting weights2------------------')
         model = set_weights(model, weights, verbose)
     if path!=None:
         print('saving model')
